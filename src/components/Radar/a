@@ -1,0 +1,40 @@
+    <div className="container mt-5">
+       
+        <table className="table">
+            <thead>
+                <tr >
+                {columns.map((c, i) => (
+                   
+                    <th key={i}>{c}</th>
+                    
+                ))}
+                </tr>
+            </thead>
+            <tbody>
+                {
+                    RadarData.map((d, i) => (
+                        <tr key={i}>
+                            <td>{d.id}</td>
+                            <td>{d.trackMode}</td>
+                            <td>{d.trackInput}</td>
+                            <td>{d.environment}</td>
+                        </tr>
+                    ))
+                }
+            </tbody>
+        </table>
+       
+
+        let res2 = await fetch(`http://localhost:8080/radar/${RadarData[i].id}`, {
+            method: "DELETE",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',  
+            },
+            });
+            
+     
+            if (res2.status === 204) {
+                alert("Plot deleted successfully");
+            } else {
+                alert("Some error occured");
+            }
