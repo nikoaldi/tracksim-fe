@@ -1,128 +1,323 @@
 import  Axios  from "axios"
 import React, { useEffect, useState } from "react"
-import './RadarForm.css';
+import './RadarHome.css';
 import axios from "axios";
-import DataTable from "react-data-table-component";
 import { Alert } from "bootstrap";
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
+import useWebSocket from 'react-use-websocket';
 
 const RadarHome = (props) => {
 
     const [RadarData, setRadarData] = useState([]);
+    const [RadarDataClone, setRadarDataClone] = useState([]);
     const [RadarUpdate, setRadarUpdate] = useState([]);
     const [statusRadio, setStatusRadio] = useState(1);
-    const [id, setId] = useState(null);
+    const [id, setId] = useState("");
     const [status, setStatus] = useState("Saved");
-    const [lastSend, setLastSend] = useState(null);
-    const [time, setTime] = useState("Time");
+    const [lastSend, setLastSend] = useState("");
+    const [time, setTime] = useState(0);
     const [trackMode, setTrackMode] = useState("");
-    const [environment, setEnvironment] = useState("Environment");
-    const [course, setCourse] = useState();
-    const [speed, setSpeed] = useState();
+    const [environment, setEnvironment] = useState("");
+    const [course, setCourse] = useState("");
+    const [speed, setSpeed] = useState("");
     const [courseRangeMin, setCourseRangeMin] = useState();
     const [courseRangeMax, setCourseRangeMax] = useState();
     const [courseIncrement, setCourseIncrement] = useState();
-    const [latitude, setLatitude] = useState(null);
-    const [bearing, setBearing] = useState(null);
-    const [mode1code, setMode1Code] = useState(null);
-    const [mode2code, setMode2Code] = useState(null);
+    const [latitude, setLatitude] = useState("");
+    const [bearing, setBearing] = useState("");
+    const [mode1code, setMode1Code] = useState("");
+    const [mode2code, setMode2Code] = useState("");
     const [trackInput, setTrackInput] = useState("");
-    const [startTime, setStartTime] = useState(null);
-    const [speedRangeMin, setSpeedRangeMin] = useState(null);
-    const [speedRangeMax, setSpeedRangeMax] = useState(null);
-    const [speedIncrement, setSpeedIncrement] = useState(null);
-    const [longitude, setLongitude] = useState(null);
-    const [distance, setDistance] = useState(null);
-    const [mode3code, setMode3Code] = useState(null);
-    const [mode4code, setMode4Code] = useState(null);
-    const [count, setCount] = useState(null);
-    const [endTime, setEndTime] = useState(null);
-    const [altitudeRangeMin, setAltitudeRangeMin] = useState(null);
-    const [altitudeRangeMax, setAltitudeRangeMax] = useState(null);
-    const [altitudeIncrement, setAltitudeIncrement] = useState(null);
-    const [altitude, setAltitude] = useState(null);
-    const [mode5code, setMode5Code] = useState(null);
+    const [startTime, setStartTime] = useState("-");
+    const [speedRangeMin, setSpeedRangeMin] = useState("");
+    const [speedRangeMax, setSpeedRangeMax] = useState("");
+    const [speedIncrement, setSpeedIncrement] = useState("");
+    const [longitude, setLongitude] = useState("");
+    const [distance, setDistance] = useState("");
+    const [mode3code, setMode3Code] = useState("");
+    const [mode4code, setMode4Code] = useState("");
+    const [count, setCount] = useState("");
+    const [endTime, setEndTime] = useState("-");
+    const [altitudeRangeMin, setAltitudeRangeMin] = useState("");
+    const [altitudeRangeMax, setAltitudeRangeMax] = useState("");
+    const [altitudeIncrement, setAltitudeIncrement] = useState("");
+    const [altitude, setAltitude] = useState("");
+    const [mode5code, setMode5Code] = useState("");
     const checkIdSend=[];
     const checkIdDelete=[];
+    const checkIdStop=[];
+    const idChecked=[3,4];
     const [message, setMessage] = useState("");
     const [edit, setEdit] = useState("");
+    const [checkTrackMode, setCheckTrackMode] = useState("");
+    const [connected, setConnected] = useState(false);
 
-    const kolom = [
-      {
-        name: 'ID',
-        selector: row => row.id,
-        sortable: true
-      },
-      {
-        name: 'Track Input',
-        selector: row => row.trackInput,
-        sortable: true
-      },
-      {
-        name: 'Track Mode',
-        selector: row => row.trackMode,
-        sortable: true
-      },
-      {
-        name: 'Environtment',
-        selector: row => row.environtment,
-        sortable: true
-      },
-      {
-        name: 'Start Time',
-        selector: row => row.startTime,
-        sortable: true
-      },
-      {
-        name: 'End Time',
-        selector: row => row.endTime,
-        sortable: true
-      }
-    ]
+    const enumEnvironment = {
+        1: "Air",
+        2: "Surface",
+        3: "Subsurface",
+        4: "Land"
+    }
 
-    // Handler Radio 1
+    useEffect(() => {
+        let ws
+   
+        var connected = false;
+        var socket;
+
+        socket = new WebSocket("ws://localhost:8080" + "/chat");
+        socket.onopen = function() {
+            connected = true;
+            console.log("Connected to the web socket");
+        };
+        socket.onmessage =function(m) {
+            console.log("Got message: " + m.data);
+        };
+         
+
+    
+        return () => {
+          if (ws) {
+            // Close the WebSocket connection when the component unmounts
+            ws.close();
+          }
+        };
+      }, []);
+
+
+    // POP UP DELETE
+    const [showDelete, setShowDelete] = useState(false);
+    const handleCloseDelete= () => setShowDelete(false);
+    const handleShowDelete = () => setShowDelete(true);
+
+    // POP UP SAVE
+    const [showSave, setShowSave] = useState(false);
+    const handleCloseSave= () => setShowSave(false);
+    const handleShowSave = () => setShowSave(true);
+
+    // POP UP SAVE AND SEND
+    const [showSaveAndSend, setShowSaveAndSend] = useState(false);
+    const handleCloseSaveAndSend= () => setShowSaveAndSend(false);
+    const handleShowSaveAndSend = () => setShowSaveAndSend(true);
+
+
+    // HANDLER RADIO 1 LATITUDE & LONGITUDE
     let handlerRadio1 = async (e) => {
         setStatusRadio(1)
         document.getElementById("bearing").disabled = true;
+        document.getElementById("bearing").style.backgroundColor = '#696978';
         document.getElementById("distance").disabled = true;
+        document.getElementById("distance").style.backgroundColor = '#696978';
         document.getElementById("latitude").disabled = false;
+        document.getElementById("latitude").style.backgroundColor = 'white';
         document.getElementById("longitude").disabled = false;
+        document.getElementById("longitude").style.backgroundColor = 'white';
         setBearing("")
         setDistance("")
     };
     
-    //// Handler Radio 2
+    // HANDLER RADIO 2 DISTANCE & BEARING
     let handlerRadio2 = async () => {
         setStatusRadio(2)
         document.getElementById("bearing").disabled = false;
+        document.getElementById("bearing").style.backgroundColor = 'white';
         document.getElementById("distance").disabled = false;
+        document.getElementById("distance").style.backgroundColor = 'white';
         document.getElementById("latitude").disabled = true;
+        document.getElementById("latitude").style.backgroundColor = '#696978';
         document.getElementById("longitude").disabled = true;
+        document.getElementById("longitude").style.backgroundColor = '#696978';
         setLatitude("")
         setLongitude("")
     };
 
-    //// Request Get Radar Track Data
+    // Request Get Radar Track Data
     const getRadarData = async () => {
         try{
         const response = await Axios.get('http://localhost:8080/radar');
         setRadarData(response.data)
+        
         } catch(e){
         console.log(e.message)
         }
     }
 
     useEffect(() => {
-            getRadarData();
+        // let interval = setInterval(() => {
+            getRadarData()
+           
+        // },2000)
+           
+            
     }, [])
-    
-    //Function Request POST Save Data Radar Track
+
+    // HANDLER SET CHECKED TRACK
+    const handlerSetCheckedTrack = async (e) => {
+        const {name, checked}= e.target;
+            const checkedvalue= RadarData.map( (radar)=>
+            radar.id === 4? {...radar, isChecked:true}:radar);
+            console.log(checkedvalue);
+            setRadarData(checkedvalue);
+            alert("udah")
+    }
+
+
+    // REQUEST POST SAVE RADAR TRACK
     let dataSave = async (e) => {
         let resSend= await fetch("http://localhost:8080/radar", {
             method: "POST",
             body: JSON.stringify({
             status: status,
-            lastSend: lastSend,
             count:count,
+            lastSend: lastSend,
+            trackInput:trackInput,
+            course:course,
+            speed:speed,
+            trackMode: trackMode,
+            environment: environment,
+            courseRangeMin:courseRangeMin,
+            courseRangeMax:courseRangeMax,
+            courseIncrement:courseIncrement,
+            latitude:latitude,
+            bearing:bearing,
+            mode1code:mode1code,
+            mode2code:mode2code,
+            startTime:startTime,
+            speedRangeMin:speedRangeMin,
+            speedRangeMax:speedRangeMax,
+            speedIncrement:speedIncrement,
+            longitude:longitude,
+            distance:distance,
+            mode3code:mode3code,
+            mode4code:mode4code,
+            endTime:endTime,
+            altitudeRangeMin:altitudeRangeMin,
+            altitudeRangeMax:altitudeRangeMax,
+            altitudeIncrement:altitudeIncrement,
+            altitude:altitude,
+            mode5code:mode5code
+        }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },               
+        });
+
+        if (resSend.status === 201) {
+            alert("Save Radar Track success");
+          } else {
+            alert("Some error occured");
+          }
+        window.location.reload();
+    }
+    
+    // REQUEST POST SAVE RADAR TRACK
+    let dataSaveAndSend = async (e) => {
+        let resSend= await fetch("http://localhost:8080/radar/saveandsend", {
+            method: "POST",
+            body: JSON.stringify({
+            status: status,
+            count:count,
+            lastSend: lastSend,
+            trackInput:trackInput,
+            course:course,
+            speed:speed,
+            trackMode: trackMode,
+            environment: environment,
+            courseRangeMin:courseRangeMin,
+            courseRangeMax:courseRangeMax,
+            courseIncrement:courseIncrement,
+            latitude:latitude,
+            bearing:bearing,
+            mode1code:mode1code,
+            mode2code:mode2code,
+            startTime:startTime,
+            speedRangeMin:speedRangeMin,
+            speedRangeMax:speedRangeMax,
+            speedIncrement:speedIncrement,
+            longitude:longitude,
+            distance:distance,
+            mode3code:mode3code,
+            mode4code:mode4code,
+            endTime:endTime,
+            altitudeRangeMin:altitudeRangeMin,
+            altitudeRangeMax:altitudeRangeMax,
+            altitudeIncrement:altitudeIncrement,
+            altitude:altitude,
+            mode5code:mode5code
+        }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },               
+        });
+
+        if (resSend.status === 201) {
+            alert("Save and Send Radar Track success");
+          } else {
+            alert("Some error occured");
+          }
+        window.location.reload();   
+    }
+
+    // Function Request PUT Update Data Radar Track --
+    let dataUpdate = async (e) => {
+        let resUpdate= await fetch(`http://localhost:8080/radar/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+            id:id,
+            status: status,
+            lastSend: lastSend,
+            trackInput:trackInput,
+            course:course,
+            speed:speed,
+            trackMode: trackMode,
+            environment: environment,
+            courseRangeMin:courseRangeMin,
+            courseRangeMax:courseRangeMax,
+            courseIncrement:courseIncrement,
+            latitude:latitude,
+            bearing:bearing,
+            mode1code:mode1code,
+            mode2code:mode2code,
+            startTime:startTime,
+            speedRangeMin:speedRangeMin,
+            speedRangeMax:speedRangeMax,
+            speedIncrement:speedIncrement,
+            longitude:longitude,
+            distance:distance,
+            mode3code:mode3code,
+            mode4code:mode4code,
+            endTime:endTime,
+            altitudeRangeMin:altitudeRangeMin,
+            altitudeRangeMax:altitudeRangeMax,
+            altitudeIncrement:altitudeIncrement,
+            altitude:altitude,
+            mode5code:mode5code
+
+        }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },               
+        });
+
+        if (resUpdate.status === 200) {
+            alert("Radar Track Updated");
+            window.location.reload();
+          } else {
+            setMessage("Some error occured");
+            window.location.reload();
+          }
+        window.location.reload();
+    }
+
+    // Function Request PUT Update Data Radar Track SAVE AND SEND--
+    let dataUpdateSaveAndSend = async (e) => {
+        let resUpdate= await fetch(`http://localhost:8080/radar/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+            id:id,
+            status: status,
+            lastSend: lastSend,
             time:time,
             trackInput:trackInput,
             course:course,
@@ -156,29 +351,320 @@ const RadarHome = (props) => {
                 'Content-type': 'application/json; charset=UTF-8',
             },               
         });
+
+        if (resUpdate.status === 200) {
+            handlerSendTrackSaveAndSend();
+            alert("Radar Track Updated");
+            window.location.reload();
+          } else {
+            setMessage("Some error occured");
+            window.location.reload();
+          }
+        window.location.reload();
     }
         
-    // Handle Save Radar Track
+    // HANDLER SAVE RADAR TRACK
     let handlerSaveTrack = async (e) => {
-        e.preventDefault();
         try {
-            if(trackInput === "multi" && trackMode == "Manual"){
-                for (let step = 0; step < count; step++) {
+            if(trackInput === "import"){
+                alert("import") //TO DO
+            } else {
+                if(edit !== "edit"){
+                    handleCloseSave();
                     dataSave();
+                } else {
+                    handleCloseSave();
+                    dataUpdate();
                 }
-            } else if(trackInput === "multi" && trackMode == "Automatic"){
-                for (let step = 0; step < count; step++) {
-                    dataSave();
-                }
-            } else if(trackInput === "single"){
-                dataSave();
-            }        
+            }
         } catch (err) {
           console.log(err);
         }
-    };
+    }
 
-    //Handle change selected 
+    // HANDLER SAVE AND SEND RADAR TRACK
+    let handlerSaveAndSendTrack = async (e) => {
+        try {
+            if(trackInput === "import"){
+                alert("import") //TO DO
+            } else {
+                if(edit !== "edit"){
+                    handleCloseSaveAndSend();
+                    dataSaveAndSend();
+                } else {
+                    handleCloseSaveAndSend();
+                    dataUpdateSaveAndSend();
+                }
+            }
+        } catch (err) {
+          console.log(err);
+        }
+    }
+
+    // HANDLER VALIDASI INPUT SAVE AND SEND UPDATE **
+    let handlerValidasiInputSaveAndSendUpdate = async (e) => {
+        if(edit === "edit"){
+            handlerValidasiSaveAndSendTrackUpdate();
+        } else {
+            handlerValidasiSaveAndSendTrack();
+        }
+    }
+
+    // HANDLER VALIDASI SAVE AND SEND RADAR TRACK
+    let handlerValidasiSaveAndSendTrack = async (e) => {
+        try {
+            if(trackInput === "" || trackMode === ""){
+                alert("Pilih track mode terlebih dahulu")
+            } else {
+                if(trackInput === "single" && trackMode === "manual"){
+                    if(environment === "" || course === "" || speed === "" || altitude === "" || mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        }
+                    }
+                } else if(trackInput === "single" && trackMode === "automatic"){
+                    if(environment === ""  || course === "" || courseRangeMin === ""|| courseRangeMax === ""|| courseIncrement === ""|| speed === ""|| speedRangeMin === ""|| speedRangeMax === ""|| speedIncrement === "" || altitude === "" || altitudeRangeMin === ""|| altitudeRangeMax === "" || altitudeIncrement === ""|| mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        }
+                    }
+                } else if(trackInput === "multi" && trackMode === "manual"){
+                    if(environment === "" ||count === "" || course === "" || speed === "" || altitude === "" || mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        }
+                    }
+                } else if(trackInput === "multi" && trackMode === "automatic"){
+                    if(count === "" ){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        handleShowSaveAndSend();
+                    }
+                }
+            }
+            
+        } catch (err) {
+          console.log(err);
+        }
+    }
+
+    // HANDLER VALIDASI SAVE AND SEND RADAR TRACK UPDATE
+    let handlerValidasiSaveAndSendTrackUpdate = async (e) => {
+        try {
+            if(trackMode === ""){
+                alert("Pilih track mode terlebih dahulu")
+            } else {
+                if(trackMode === "manual"){
+                    if(environment === "" || course === "" || speed === "" || altitude === "" || mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        }
+                    }
+                } else if(trackMode === "automatic"){
+                    if(environment === ""  || course === "" || courseRangeMin === ""|| courseRangeMax === ""|| courseIncrement === ""|| speed === ""|| speedRangeMin === ""|| speedRangeMax === ""|| speedIncrement === "" || altitude === "" || altitudeRangeMin === ""|| altitudeRangeMax === "" || altitudeIncrement === ""|| mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSaveAndSend();
+                            }
+                        }
+                    }
+                } 
+            }  
+        } catch (err) {
+          console.log(err);
+        }
+    }
+
+    // HANDLER VALIDASI INPUT SEND **
+    let handlerValidasiInput = async (e) => {
+        if(edit === "edit"){
+            handlerValidasiUpdateTrack();
+        } else {
+            handlerValidasiSaveTrack();
+        }
+    }
+
+    // HANDLER VALIDASI SAVE TRACK
+    let handlerValidasiSaveTrack = async (e) => {
+        try {
+            if(trackInput === "" || trackMode === ""){
+                alert("Pilih track mode terlebih dahulu")
+            } else {
+                if(trackInput === "single" && trackMode === "manual"){
+                    if(environment === "" || course === "" || speed === "" || altitude === "" || mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        }
+                    }
+                } else if(trackInput === "single" && trackMode === "automatic"){
+                    if(environment === ""  || course === "" || courseRangeMin === ""|| courseRangeMax === ""|| courseIncrement === ""|| speed === ""|| speedRangeMin === ""|| speedRangeMax === ""|| speedIncrement === "" || altitude === "" || altitudeRangeMin === ""|| altitudeRangeMax === "" || altitudeIncrement === ""|| mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        }
+                    }
+                } else if(trackInput === "multi" && trackMode === "manual"){
+                    if(environment === "" ||count === "" || course === "" || speed === "" || altitude === "" || mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                    handleShowSave();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        }
+                    }
+                } else if(trackInput === "multi" && trackMode === "automatic"){
+                    if(count === "" ){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        handleShowSave();
+                    }
+                }
+            }    
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    // HANDLER VALIDASI UPDATE SAVE TRACK
+    let handlerValidasiUpdateTrack = async (e) => {
+        try {
+            if(trackMode === ""){
+                alert("Pilih track mode terlebih dahulu")
+            } else {
+                if(trackMode === "manual"){
+                    if(environment === "" || course === "" || speed === "" || altitude === "" || mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        }
+                    }
+                } else if(trackMode === "automatic"){
+                    if(environment === ""  || course === "" || courseRangeMin === ""|| courseRangeMax === ""|| courseIncrement === ""|| speed === ""|| speedRangeMin === ""|| speedRangeMax === ""|| speedIncrement === "" || altitude === "" || altitudeRangeMin === ""|| altitudeRangeMax === "" || altitudeIncrement === ""|| mode1code === ""|| mode2code === ""|| mode3code === ""|| mode4code === ""|| mode5code === ""){
+                        alert("Pastikan semua data sudah terisi")
+                    } else {
+                        if(statusRadio === 1){
+                            if(latitude === "" || longitude === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        } else {
+                            if(bearing === "" || distance === ""){
+                                alert("Pastikan semua data sudah terisi")
+                            } else {
+                                handleShowSave();
+                            }
+                        }
+                    }
+                }
+            }    
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    // HANDLER CHANGE SELECTED 
     const handleChange=(e)=>{
         const {name, checked}= e.target;
         if(name==="allselect")
@@ -193,9 +679,8 @@ const RadarHome = (props) => {
             setRadarData(checkedvalue);
         }
     }
-  
-
-    //Handle delete track
+   
+    // HANDLER GET DELETED ID RADAR TRACK
     const handlerGetIdDeleteTrack = async (id) => {
         try {               
             for(let i=0; i < RadarData.length; i++){
@@ -203,183 +688,60 @@ const RadarHome = (props) => {
                     checkIdDelete.push(RadarData[i].id);                           
                     console.log(checkIdDelete)
                 }
-            }
-            handlerDeleteTrack()       
+            }        
         } catch (err) {
             console.log(err);
         }
+        if(checkIdDelete.length > 0){
+            handleShowDelete();
+        } else {
+            alert("Pilih Radar Track yg akan dihapus")
+        }
     }
 
-    //Handler get ID Delete Radar Track Data
+    // HANDLER DELETE ALL RADAR TRACK BY ID CHECKED
     let handlerDeleteTrack = async (e) => {
-        let resSend= await fetch(`http://localhost:8080/radar/deleteall`, {
+        try {               
+            for(let i=0; i < RadarData.length; i++){
+                if(RadarData[i].isChecked===true){            
+                    checkIdDelete.push(RadarData[i].id);                           
+                    console.log(checkIdDelete)
+                }
+            }        
+        } catch (err) {
+            console.log(err);
+        }
+
+        let resDelete= await fetch(`http://localhost:8080/radar/deleteall`, {
             method: "DELETE",
             body: "["+checkIdDelete+"]",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
             },               
         });
+        
+        if (resDelete.status === 204) {
+            alert("Radar Track Deleted");
+            window.location.reload();
+          } else {
+            setMessage("Some error occured");
+            window.location.reload();
+          }
+          handleCloseDelete(true)
     }   
-    
-     //Handle Update Form
-    const handlerUpdateForm=(radar)=>{
-        setTrackInput(radar.trackInput)
-        setTrackMode(radar.trackMode)
-        var Tinput = radar.trackInput
-        var Tmode = radar.trackMode
-  
-        if(Tinput === 'single' && Tmode === 'Manual')
-        {
-            document.getElementById("count").disabled = true;
-            document.getElementById("er").disabled = false;
-            document.getElementById("start-time-input").disabled = true;
-            document.getElementById("end-time-input").disabled = true;
-            document.getElementById("course").disabled = false;
-            document.getElementById("speed").disabled = false;
-            document.getElementById("altitude").disabled = false;
-            document.getElementById("course-range-min").disabled = true;
-            document.getElementById("course-range-max").disabled = true;
-            document.getElementById("speed-range-max").disabled = true;
-            document.getElementById("speed-range-max").disabled = true;
-            document.getElementById("altitude-range-max").disabled = true;
-            document.getElementById("altitude-range-max").disabled = true;
-            document.getElementById("course-increment").disabled = true;
-            document.getElementById("speed-increment").disabled = true;
-            document.getElementById("altitude-increment").disabled = true;
-            document.getElementById("latitude").disabled = false;
-            document.getElementById("longitude").disabled = false;
-            document.getElementById("bearing").disabled = false;
-            document.getElementById("distance").disabled = false;
-            document.getElementById("mode1").disabled = false;
-            document.getElementById("mode2").disabled = false;
-            document.getElementById("mode3").disabled = false;
-            document.getElementById("mode4").disabled = false;
-            document.getElementById("mode5").disabled = false;
-        }
-        else if (Tinput === 'single' && Tmode === 'Automatic')
-        {
-            document.getElementById("count").disabled = true;
-            document.getElementById("er").disabled = false;
-            document.getElementById("start-time-input").disabled = false;
-            document.getElementById("end-time-input").disabled = false;
-            document.getElementById("course").disabled = false;
-            document.getElementById("speed").disabled = false;
-            document.getElementById("altitude").disabled = false;
-            document.getElementById("course-range-min").disabled = false;
-            document.getElementById("course-range-max").disabled = false;
-            document.getElementById("speed-range-max").disabled = false;
-            document.getElementById("speed-range-min").disabled = false;
-            document.getElementById("altitude-range-max").disabled = false;
-            document.getElementById("altitude-range-min").disabled = false;
-            document.getElementById("course-increment").disabled = false;
-            document.getElementById("speed-increment").disabled = false;
-            document.getElementById("altitude-increment").disabled = false;
-            document.getElementById("latitude").disabled = false;
-            document.getElementById("longitude").disabled = false;
-            document.getElementById("bearing").disabled = false;
-            document.getElementById("distance").disabled = false;
-            document.getElementById("mode1").disabled = false;
-            document.getElementById("mode2").disabled = false;
-            document.getElementById("mode3").disabled = false;
-            document.getElementById("mode4").disabled = false;
-            document.getElementById("mode5").disabled = false;
-        }
-        else if (Tinput === 'multi' && Tmode === 'Manual')
-        {
-            document.getElementById("count").disabled = false;
-            document.getElementById("er").disabled = false;
-            document.getElementById("start-time-input").disabled = true;
-            document.getElementById("end-time-input").disabled = true;
-            document.getElementById("course").disabled = false;
-            document.getElementById("speed").disabled = false;
-            document.getElementById("altitude").disabled = false;
-            document.getElementById("course-range-min").disabled = true;
-            document.getElementById("course-range-max").disabled = true;
-            document.getElementById("speed-range-max").disabled = true;
-            document.getElementById("speed-range-min").disabled = true;
-            document.getElementById("altitude-range-max").disabled = true;
-            document.getElementById("altitude-range-min").disabled = true;
-            document.getElementById("course-increment").disabled = true;
-            document.getElementById("speed-increment").disabled = true;
-            document.getElementById("altitude-increment").disabled = true;
-            document.getElementById("latitude").disabled = false;
-            document.getElementById("longitude").disabled = false;
-            document.getElementById("bearing").disabled = false;
-            document.getElementById("distance").disabled = false;
-            document.getElementById("mode1").disabled = false;
-            document.getElementById("mode2").disabled = false;
-            document.getElementById("mode3").disabled = false;
-            document.getElementById("mode4").disabled = false;
-            document.getElementById("mode5").disabled = false;
-        }
-        else if (Tinput === 'multi' && Tmode === 'Automatic')
-        {
-            document.getElementById("count").disabled = false;
-            document.getElementById("er").disabled = true;
-            document.getElementById("start-time-input").disabled = true;
-            document.getElementById("end-time-input").disabled = true;
-            document.getElementById("course").disabled = true;
-            document.getElementById("speed").disabled = true;
-            document.getElementById("altitude").disabled = true;
-            document.getElementById("course-range-min").disabled = true;
-            document.getElementById("course-range-max").disabled = true;
-            document.getElementById("speed-range-max").disabled = true;
-            document.getElementById("speed-range-min").disabled = true;
-            document.getElementById("altitude-range-max").disabled = true;
-            document.getElementById("altitude-range-min").disabled = true;
-            document.getElementById("course-increment").disabled = true;
-            document.getElementById("speed-increment").disabled = true;
-            document.getElementById("altitude-increment").disabled = true;
-            document.getElementById("latitude").disabled = true;
-            document.getElementById("longitude").disabled = true;
-            document.getElementById("bearing").disabled = true;
-            document.getElementById("distance").disabled = true;
-            document.getElementById("mode1").disabled = true;
-            document.getElementById("mode2").disabled = true;
-            document.getElementById("mode3").disabled = true;
-            document.getElementById("mode4").disabled = true;
-            document.getElementById("mode5").disabled = true;
-        }
-        else {
-            document.getElementById("count").disabled = true;
-            document.getElementById("er").disabled = true;
-            document.getElementById("start-time-input").disabled = true;
-            document.getElementById("end-time-input").disabled = true;
-            document.getElementById("course").disabled = true;
-            document.getElementById("speed").disabled = true;
-            document.getElementById("altitude").disabled = true;
-            document.getElementById("course-range-min").disabled = true;
-            document.getElementById("course-range-max").disabled = true;
-            document.getElementById("speed-range-max").disabled = true;
-            document.getElementById("speed-range-min").disabled = true;
-            document.getElementById("altitude-range-max").disabled = true;
-            document.getElementById("altitude-range-min").disabled = true;
-            document.getElementById("course-increment").disabled = true;
-            document.getElementById("speed-increment").disabled = true;
-            document.getElementById("altitude-increment").disabled = true;
-            document.getElementById("latitude").disabled = true;
-            document.getElementById("longitude").disabled = true;
-            document.getElementById("bearing").disabled = true;
-            document.getElementById("distance").disabled = true;
-            document.getElementById("mode1").disabled = true;
-            document.getElementById("mode2").disabled = true;
-            document.getElementById("mode3").disabled = true;
-            document.getElementById("mode4").disabled = true;
-            document.getElementById("mode5").disabled = true;
-        }
-       
-    }  
 
-    //Handler Track Input Form
+    // HANDLER TRACK INPUT CHANGE
     const handleTrackInput=(event)=>{
         setTrackInput(event.target.value)
         var Tinput = event.target.value
         var status = "change"
         document.getElementById("tmr").disabled = false;
+        document.getElementById("radio1").disabled = true;
+        document.getElementById("radio2").disabled = true;
         disableFormInput(Tinput, trackMode, status)
     }
 
-    //Handler Track Mode Form
+    // HANDLER TRACK MODE CHANGE
     const handleTrackMode=(event)=>{
         setTrackMode(event.target.value)
         var Tmode = event.target.value
@@ -387,257 +749,303 @@ const RadarHome = (props) => {
         disableFormInput(trackInput, Tmode, status)
     }
 
-    //Fungsi disable input form
-    const disableAllInput = () => {
-        document.getElementById("count").disabled = true;
-        document.getElementById("er").disabled = true;
-        document.getElementById("start-time-input").disabled = true;
-        document.getElementById("end-time-input").disabled = true;
-        document.getElementById("course").disabled = true;
-        document.getElementById("speed").disabled = true;
-        document.getElementById("altitude").disabled = true;
-        document.getElementById("course-range-min").disabled = true;
-        document.getElementById("course-range-max").disabled = true;
-        document.getElementById("speed-range-max").disabled = true;
-        document.getElementById("speed-range-min").disabled = true;
-        document.getElementById("altitude-range-max").disabled = true;
-        document.getElementById("altitude-range-min").disabled = true;
-        document.getElementById("course-increment").disabled = true;
-        document.getElementById("speed-increment").disabled = true;
-        document.getElementById("altitude-increment").disabled = true;
-        document.getElementById("latitude").disabled = true;
-        document.getElementById("longitude").disabled = true;
-        document.getElementById("bearing").disabled = true;
-        document.getElementById("distance").disabled = true;
-        document.getElementById("mode1").disabled = true;
-        document.getElementById("mode2").disabled = true;
-        document.getElementById("mode3").disabled = true;
-        document.getElementById("mode4").disabled = true;
-        document.getElementById("mode5").disabled = true;
+    // DISABLED INPUT MANUAL TRACK RADAR 
+    const formManualTrackInput = () => {  
+        document.getElementById("radio1").disabled = false;
+        document.getElementById("radio2").disabled = false;
+        document.getElementById("tmr").disabled = false;
+        document.getElementById("er").disabled = false;
+        document.getElementById("course").disabled = false;
+        document.getElementById("speed").disabled = false;
+        document.getElementById("altitude").disabled = false;
+        document.getElementById("latitude").disabled = false;
+        document.getElementById("longitude").disabled = false;
+        document.getElementById("mode1").disabled = false;
+        document.getElementById("mode2").disabled = false;
+        document.getElementById("mode3").disabled = false;
+        document.getElementById("mode4").disabled = false;
+        document.getElementById("mode5").disabled = false;
+        
+        document.getElementById("radio1").style.backgroundColor = 'white';
+        document.getElementById("radio2").style.backgroundColor = 'white';
+        document.getElementById("tmr").style.backgroundColor = 'white';
+        document.getElementById("er").style.backgroundColor = 'white';
+        document.getElementById("course").style.backgroundColor = 'white';
+        document.getElementById("speed").style.backgroundColor = 'white';
+        document.getElementById("altitude").style.backgroundColor = 'white';
+        document.getElementById("latitude").style.backgroundColor = 'white';
+        document.getElementById("longitude").style.backgroundColor = 'white';
+        document.getElementById("mode1").style.backgroundColor = 'white';
+        document.getElementById("mode2").style.backgroundColor = 'white';
+        document.getElementById("mode3").style.backgroundColor = 'white';
+        document.getElementById("mode4").style.backgroundColor = 'white';
+        document.getElementById("mode5").style.backgroundColor = 'white';
+        setCount("")
+        setStartTime("-")
+        setEndTime("-")
+        setCourseRangeMin("")
+        setCourseRangeMax("")
+        setCourseIncrement("")
+        setSpeedRangeMin("")
+        setSpeedRangeMax("")
+        setSpeedIncrement("")
+        setAltitudeRangeMin("")
+        setAltitudeRangeMax("")
+        setAltitudeIncrement("")
     }
 
-    //Handle Disable Form Input
+    // DISABLED INPUT AUTOMATIC TRACK RADAR
+    const formAutomaticTrackInput = () => {  
+        document.getElementById("radio1").disabled = false;
+        document.getElementById("radio2").disabled = false;
+        document.getElementById("tmr").disabled = false;
+        document.getElementById("er").disabled = false;
+        document.getElementById("start-time-input").disabled = false;
+        document.getElementById("end-time-input").disabled = false;
+        document.getElementById("course").disabled = false;
+        document.getElementById("speed").disabled = false;
+        document.getElementById("altitude").disabled = false;
+        document.getElementById("course-range-min").disabled = false;
+        document.getElementById("course-range-max").disabled = false;
+        document.getElementById("speed-range-max").disabled = false;
+        document.getElementById("speed-range-min").disabled = false;
+        document.getElementById("altitude-range-max").disabled = false;
+        document.getElementById("altitude-range-min").disabled = false;
+        document.getElementById("course-increment").disabled = false;
+        document.getElementById("speed-increment").disabled = false;
+        document.getElementById("altitude-increment").disabled = false;
+        document.getElementById("latitude").disabled = false;
+        document.getElementById("longitude").disabled = false;
+        document.getElementById("mode1").disabled = false;
+        document.getElementById("mode2").disabled = false;
+        document.getElementById("mode3").disabled = false;
+        document.getElementById("mode4").disabled = false;
+        document.getElementById("mode5").disabled = false;
+
+        document.getElementById("radio1").style.backgroundColor = 'white';
+        document.getElementById("radio2").style.backgroundColor = 'white';
+        document.getElementById("tmr").style.backgroundColor = 'white';
+        document.getElementById("er").style.backgroundColor = 'white';
+        document.getElementById("start-time-input").style.backgroundColor = 'white';
+        document.getElementById("end-time-input").style.backgroundColor = 'white';
+        document.getElementById("course").style.backgroundColor = 'white';
+        document.getElementById("speed").style.backgroundColor = 'white';
+        document.getElementById("altitude").style.backgroundColor = 'white';
+        document.getElementById("course-range-min").style.backgroundColor = 'white';
+        document.getElementById("course-range-max").style.backgroundColor = 'white';
+        document.getElementById("speed-range-max").style.backgroundColor = 'white';
+        document.getElementById("speed-range-min").style.backgroundColor = 'white';
+        document.getElementById("altitude-range-max").style.backgroundColor = 'white';
+        document.getElementById("altitude-range-min").style.backgroundColor = 'white';
+        document.getElementById("course-increment").style.backgroundColor = 'white';
+        document.getElementById("speed-increment").style.backgroundColor = 'white';
+        document.getElementById("altitude-increment").style.backgroundColor = 'white';
+        document.getElementById("latitude").style.backgroundColor = 'white';
+        document.getElementById("longitude").style.backgroundColor = 'white';
+        document.getElementById("mode1").style.backgroundColor = 'white';
+        document.getElementById("mode2").style.backgroundColor = 'white';
+        document.getElementById("mode3").style.backgroundColor = 'white';
+        document.getElementById("mode4").style.backgroundColor = 'white';
+        document.getElementById("mode5").style.backgroundColor = 'white';
+    }
+
+    // DISABLED ALL INPUT FORM
+    const disableAllInput = () => {
+        document.getElementById("count").disabled = true;
+        document.getElementById("count").style.backgroundColor = '#696978';
+        document.getElementById("er").disabled = true;
+        document.getElementById("er").style.backgroundColor = '#696978';
+        document.getElementById("start-time-input").disabled = true;
+        document.getElementById("start-time-input").style.backgroundColor = '#696978';
+        document.getElementById("end-time-input").disabled = true;
+        document.getElementById("end-time-input").style.backgroundColor = '#696978';
+        document.getElementById("course").disabled = true;
+        document.getElementById("course").style.backgroundColor = '#696978';
+        document.getElementById("speed").disabled = true;
+        document.getElementById("speed").style.backgroundColor = '#696978';
+        document.getElementById("altitude").disabled = true;
+        document.getElementById("altitude").style.backgroundColor = '#696978';
+        document.getElementById("course-range-min").disabled = true;
+        document.getElementById("course-range-min").style.backgroundColor = '#696978';
+        document.getElementById("course-range-max").disabled = true;
+        document.getElementById("course-range-max").style.backgroundColor = '#696978';
+        document.getElementById("speed-range-max").disabled = true;
+        document.getElementById("speed-range-max").style.backgroundColor = '#696978';
+        document.getElementById("speed-range-min").disabled = true;
+        document.getElementById("speed-range-min").style.backgroundColor = '#696978';
+        document.getElementById("altitude-range-max").disabled = true;
+        document.getElementById("altitude-range-max").style.backgroundColor = '#696978';
+        document.getElementById("altitude-range-min").disabled = true;
+        document.getElementById("altitude-range-min").style.backgroundColor = '#696978';
+        document.getElementById("course-increment").disabled = true;
+        document.getElementById("course-increment").style.backgroundColor = '#696978';
+        document.getElementById("speed-increment").disabled = true;
+        document.getElementById("speed-increment").style.backgroundColor = '#696978';
+        document.getElementById("altitude-increment").disabled = true;
+        document.getElementById("altitude-increment").style.backgroundColor = '#696978';
+        document.getElementById("latitude").disabled = true;
+        document.getElementById("latitude").style.backgroundColor = '#696978';
+        document.getElementById("longitude").disabled = true;
+        document.getElementById("longitude").style.backgroundColor = '#696978';
+        document.getElementById("bearing").disabled = true;
+        document.getElementById("bearing").style.backgroundColor = '#696978';
+        document.getElementById("distance").disabled = true;
+        document.getElementById("distance").style.backgroundColor = '#696978';
+        document.getElementById("mode1").disabled = true;
+        document.getElementById("mode1").style.backgroundColor = '#696978';
+        document.getElementById("mode2").disabled = true;
+        document.getElementById("mode2").style.backgroundColor = '#696978';
+        document.getElementById("mode3").disabled = true;
+        document.getElementById("mode3").style.backgroundColor = '#696978';
+        document.getElementById("mode4").disabled = true;
+        document.getElementById("mode4").style.backgroundColor = '#696978';
+        document.getElementById("mode5").disabled = true;
+        document.getElementById("mode5").style.backgroundColor = '#696978';
+        document.getElementById("myfile").disabled = true;
+        document.getElementById("myfile").style.backgroundColor = '#696978';
+    }
+
+    // DISABLED FORM INPUT RADAR TRACK
     const disableFormInput=(Tinput, Tmode, getEdit, bearing1 ,getDistance)=>{  
-        if(Tinput === 'single' && Tmode === 'Manual')
+        if(Tinput === 'single' && Tmode === 'manual')
         {
             disableAllInput()
-            document.getElementById("tmr").disabled = false;
-            document.getElementById("er").disabled = false;
-            document.getElementById("course").disabled = false;
-            document.getElementById("speed").disabled = false;
-            document.getElementById("altitude").disabled = false;
-            document.getElementById("latitude").disabled = false;
-            document.getElementById("longitude").disabled = false;
-            document.getElementById("mode1").disabled = false;
-            document.getElementById("mode2").disabled = false;
-            document.getElementById("mode3").disabled = false;
-            document.getElementById("mode4").disabled = false;
-            document.getElementById("mode5").disabled = false;
-            
-            setCount("")
-            setStartTime("")
-            setEndTime("")
-            setCourseRangeMin("")
-            setCourseRangeMax("")
-            setCourseIncrement("")
-            setSpeedRangeMin("")
-            setSpeedRangeMax("")
-            setSpeedIncrement("")
-            setAltitudeRangeMin("")
-            setAltitudeRangeMax("")
-            setAltitudeIncrement("")
-
-           
-      
-            
+            formManualTrackInput()
             if((getEdit === "edit")) {
                     if(bearing1 > 0 && getDistance > 0){
                         document.getElementById("ti").disabled = true;
+                        document.getElementById("ti").style.backgroundColor = '#696978';
                         handlerRadio2()
                     } else {
                         document.getElementById("ti").disabled = true;
+                        document.getElementById("ti").style.backgroundColor = '#696978';
                         handlerRadio1()    
                     }
-                document.getElementById("ti").disabled = true;
-            } 
-
-            
-        }
-        else if (Tinput === 'single' && Tmode === 'Automatic')
-        {
-
-            disableAllInput()
-            document.getElementById("tmr").disabled = false;
-            document.getElementById("er").disabled = false;
-            document.getElementById("start-time-input").disabled = false;
-            document.getElementById("end-time-input").disabled = false;
-            document.getElementById("course").disabled = false;
-            document.getElementById("speed").disabled = false;
-            document.getElementById("altitude").disabled = false;
-            document.getElementById("course-range-min").disabled = false;
-            document.getElementById("course-range-max").disabled = false;
-            document.getElementById("speed-range-max").disabled = false;
-            document.getElementById("speed-range-min").disabled = false;
-            document.getElementById("altitude-range-max").disabled = false;
-            document.getElementById("altitude-range-min").disabled = false;
-            document.getElementById("course-increment").disabled = false;
-            document.getElementById("speed-increment").disabled = false;
-            document.getElementById("altitude-increment").disabled = false;
-            document.getElementById("latitude").disabled = false;
-            document.getElementById("longitude").disabled = false;
-            document.getElementById("mode1").disabled = false;
-            document.getElementById("mode2").disabled = false;
-            document.getElementById("mode3").disabled = false;
-            document.getElementById("mode4").disabled = false;
-            document.getElementById("mode5").disabled = false;
-            setCount("")
-            if(statusRadio === 2){
-                handlerRadio2()
             } else {
-                handlerRadio1()
+                if(bearing > 0 && distance > 0){
+                    handlerRadio2()
+                } else {
+                    handlerRadio1()    
+                }
+            }
+    
+        } else if (Tinput === 'single' && Tmode === 'automatic') {
+            disableAllInput()
+            formAutomaticTrackInput()
+            setCount("")
+            if((getEdit === "edit")) {
+                document.getElementById("ti").disabled = true;
+                document.getElementById("ti").style.backgroundColor = '#696978';
+                document.getElementById("tmr").disabled = true;
+                document.getElementById("tmr").style.backgroundColor = '#696978';
+                if(bearing1 > 0 && getDistance > 0){
+                    handlerRadio2()
+                } else {
+                    handlerRadio1()    
+                }
+          
+            } else {
+                if(bearing > 0 && distance > 0){
+                    handlerRadio2()
+                } else {
+                    handlerRadio1()    
+                }
             }
             
-            if(getEdit === "edit") {
-                document.getElementById("ti").disabled = true;
-                document.getElementById("tmr").disabled = true;
-            } 
-            
-        }
-        else if (Tinput === 'multi' && Tmode === 'Manual')
-        {
+        } else if (Tinput === 'multi' && Tmode === 'manual') {
             disableAllInput()
-            document.getElementById("tmr").disabled = false;
+            formManualTrackInput()
             document.getElementById("count").disabled = false;
-            document.getElementById("er").disabled = false;
-            document.getElementById("course").disabled = false;
-            document.getElementById("speed").disabled = false;
-            document.getElementById("altitude").disabled = false;
-            document.getElementById("latitude").disabled = false;
-            document.getElementById("longitude").disabled = false;
-            document.getElementById("mode1").disabled = false;
-            document.getElementById("mode2").disabled = false;
-            document.getElementById("mode3").disabled = false;
-            document.getElementById("mode4").disabled = false;
-            document.getElementById("mode5").disabled = false;
-            setCount("")
-            setStatusRadio(1)
-            setStartTime("")
-            setEndTime("")
-            setCourseRangeMin("")
-            setCourseRangeMax("")
-            setCourseIncrement("")
-            setSpeedRangeMin("")
-            setSpeedRangeMax("")
-            setSpeedIncrement("")
-            setAltitudeRangeMin("")
-            setAltitudeRangeMax("")
-            setAltitudeIncrement("")
-            if((getEdit == "edit") && (bearing1 > 0 && getDistance > 0) ) {
+            document.getElementById("count").style.backgroundColor = 'white';
+            if((getEdit === "edit")) {
                 document.getElementById("ti").disabled = true;
+                document.getElementById("ti").style.backgroundColor = '#696978';
                 document.getElementById("count").disabled = true;
-                handlerRadio2()
-            }
-        }
-        else if (Tinput === 'multi' && Tmode === 'Automatic')
-        {
-            disableAllInput()
-            
-            document.getElementById("er").disabled = false;
-            document.getElementById("start-time-input").disabled = false;
-            document.getElementById("end-time-input").disabled = false;
-            document.getElementById("speed").disabled = false;
-            document.getElementById("course").disabled = false;
-            document.getElementById("altitude").disabled = false;
-            document.getElementById("course-range-min").disabled = false;
-            document.getElementById("course-range-max").disabled = false;
-            document.getElementById("speed-range-max").disabled = false;
-            document.getElementById("speed-range-min").disabled = false;
-            document.getElementById("altitude-range-max").disabled = false;
-            document.getElementById("altitude-range-min").disabled = false;
-            document.getElementById("course-increment").disabled = false;
-            document.getElementById("speed-increment").disabled = false;
-            document.getElementById("altitude-increment").disabled = false;
-            document.getElementById("latitude").disabled = false;
-            document.getElementById("longitude").disabled = false;
-            document.getElementById("bearing").disabled = false;
-            document.getElementById("distance").disabled = false;
-            document.getElementById("mode1").disabled = false;
-            document.getElementById("mode2").disabled = false;
-            document.getElementById("mode3").disabled = false;
-            document.getElementById("mode4").disabled = false;
-            document.getElementById("mode5").disabled = false;
-            
-            if((getEdit == "edit") && (bearing1 > 0 && getDistance > 0) ) {
-                handlerRadio2()
-                document.getElementById("ti").disabled = true;
-                document.getElementById("tmr").disabled = true;
-            } else if((getEdit == "edit") && Tmode === "Automatic" ){
-                document.getElementById("ti").disabled = true;
-                document.getElementById("tmr").disabled = true;
+                document.getElementById("count").style.backgroundColor = '#696978';
+                if(bearing1 > 0 && getDistance > 0){
+                    handlerRadio2()
+                } else {
+                    handlerRadio1()    
+                }
+    
             } else {
-                disableAllInput()
-                document.getElementById("count").disabled = false;
-                setCount("")
-                setStatusRadio(1)
-                setEnvironment("")
-                setStartTime("")
-                setEndTime("")
-                setCourse("")
-                setCourseRangeMin("")
-                setCourseRangeMax("")
-                setCourseIncrement("")
-                setSpeed("")
-                setSpeedRangeMin("")
-                setSpeedRangeMax("")
-                setSpeedIncrement("")
-                setAltitude("")
-                setAltitudeRangeMin("")
-                setAltitudeRangeMax("")
-                setAltitudeIncrement("")      
-                setLatitude("")
-                setLongitude("")
-                setBearing("")
-                setDistance("")
-                setMode1Code("")
-                setMode2Code("")
-                setMode3Code("")
-                setMode4Code("")
-                setMode5Code("")
+                if(bearing > 0 && distance > 0){
+                    handlerRadio2()
+                } else {
+                    handlerRadio1()    
+                }
             }
-        } else {
-            if(status == "edit") {
+        } else if (Tinput === 'multi' && Tmode === 'automatic') {
+            
+            if((getEdit === "edit")) {
+                formAutomaticTrackInput()
                 document.getElementById("ti").disabled = true;
+                document.getElementById("ti").style.backgroundColor = '#696978';
+                document.getElementById("tmr").disabled = true;
+                document.getElementById("tmr").style.backgroundColor = '#696978';
+                if(bearing1 > 0 && getDistance > 0){
+                    handlerRadio2()
+                } else {
+                    handlerRadio1()    
+                }
+          
+            } else {
+                if(bearing > 0 && distance > 0){
+                    handlerRadio2()
+                } else {
+                    handlerRadio1()    
+                }
+                disableAllInput()
+                
+                document.getElementById("tmr").disabled = false;
+                document.getElementById("count").disabled = false;
+                document.getElementById("count").style.backgroundColor = 'white';
+                document.getElementById("radio1").disabled = true;
+                document.getElementById("radio2").disabled = true;
+                
+                const $selectEnvironment = document.getElementById('er');
+                $selectEnvironment.value = "";
+                const $selectMode4Code = document.getElementById('mode4');
+                $selectMode4Code.value = "";
+                const $selectMode5Code = document.getElementById('mode5');
+                $selectMode5Code.value = "";
+                setEnvironment("");
+                setStartTime("-");
+                setEndTime("-");
+                setCourse("");
+                setCourseRangeMin("");
+                setCourseRangeMax("");
+                setCourseIncrement("");
+                setSpeed("");
+                setSpeedRangeMin("");
+                setSpeedRangeMax("");
+                setSpeedIncrement("");
+                setAltitude("");
+                setAltitudeRangeMin("");
+                setAltitudeRangeMax("");
+                setAltitudeIncrement("");
+                setLatitude("");
+                setLongitude("");
+                setBearing("");
+                setDistance("");
+                setMode1Code("");
+                setMode2Code("");
+                setMode3Code("");
+                setMode4Code("");
+                setMode5Code("");
             }
-            document.getElementById("count").disabled = true;
-            document.getElementById("er").disabled = true;
-            document.getElementById("start-time-input").disabled = true;
-            document.getElementById("end-time-input").disabled = true;
-            document.getElementById("course").disabled = true;
-            document.getElementById("speed").disabled = true;
-            document.getElementById("altitude").disabled = true;
-            document.getElementById("course-range-min").disabled = true;
-            document.getElementById("course-range-max").disabled = true;
-            document.getElementById("speed-range-max").disabled = true;
-            document.getElementById("speed-range-min").disabled = true;
-            document.getElementById("altitude-range-max").disabled = true;
-            document.getElementById("altitude-range-min").disabled = true;
-            document.getElementById("course-increment").disabled = true;
-            document.getElementById("speed-increment").disabled = true;
-            document.getElementById("altitude-increment").disabled = true;
-            document.getElementById("latitude").disabled = true;
-            document.getElementById("longitude").disabled = true;
-            document.getElementById("bearing").disabled = true;
-            document.getElementById("distance").disabled = true;
-            document.getElementById("mode1").disabled = true;
-            document.getElementById("mode2").disabled = true;
-            document.getElementById("mode3").disabled = true;
-            document.getElementById("mode4").disabled = true;
-            document.getElementById("mode5").disabled = true;
+        } else if(Tinput === 'import') {
+            disableAllInput()
+            document.getElementById("tmr").disabled = true;
+            alert("Fungsi Import masih belum bisa digunakan")
+            // document.getElementById("myfile").disabled = false;
+            // document.getElementById("myfile").style.backgroundColor = 'white';
+        }else {
+            disableAllInput()
         }
-       
     }   
    
-    /// REQUEST GET UPDATE
+    // REQUEST GET UPDATE
     const handleGetUpdateRadarTrack = async (e) => {
 
         const {id, checked}= e.target;
@@ -649,8 +1057,13 @@ const RadarHome = (props) => {
         $selectTrackInput.value = item.trackInput;
         const $selectEnvironment = document.getElementById('er');
         $selectEnvironment.value = item.environment;
+        const $selectMode5Code = document.getElementById('mode5');
+        $selectMode5Code.value = item.mode5code;
+        const $selectMode4Code = document.getElementById('mode4');
+        $selectMode4Code.value = item.mode5code;
         setTrackInput(item.trackInput)
         setTrackMode(item.trackMode)
+        setCheckTrackMode(item.trackMode)
         setCount(item.count)
         setEnvironment(item.environment)
         setStartTime(item.startTime)
@@ -680,30 +1093,79 @@ const RadarHome = (props) => {
         setSpeed(item.speed)
         console.log(item)
 
-        setEdit("edit")
+        
         var getEdit="edit";
-
+        setEdit("edit")
         var bearing1 = item.bearing;
         var getDistance = item.distance;
         disableFormInput(item.trackInput, item.trackMode, getEdit, bearing1, getDistance)
     }
 
-    //Handler get ID Send Radar Track Data
+    // HANDLER SEND STOP RADAR TRACK
+    let handlerStopTrack = async (e) => {
+        let resStop= await fetch(`http://localhost:8080/radar/stoptrack`, {
+            method: "POST",
+            body: "["+checkIdStop+"]",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },               
+        });
+        if (resStop.status === 202) {
+            alert("Radar Track Stopped");
+            window.location.reload();
+          } else {
+            setMessage("Some error occured");
+            window.location.reload();
+          }
+    } 
+
+    // HANDLER GET ID STOP RADAR TREACK 
+    const handlerGetIdStopTrack = async (id) => {
+        try {    
+            var getIdSend;           
+            for(let i=0; i < RadarData.length; i++){
+                if(RadarData[i].isChecked===true){            
+                    checkIdStop.push(RadarData[i].id);                           
+                    console.log(checkIdStop)
+                }
+            }
+
+            if(checkIdStop.length > 0){
+                handlerStopTrack()
+            } else {
+                alert("Pilih Track yang akan distop")
+            }
+            
+                   
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    // HANDLER GET ID SEND RADAR TRACK
     const handlerGetIdSendTrack = async (id) => {
-            try {               
+            try {    
+                var getIdSend;           
                 for(let i=0; i < RadarData.length; i++){
                     if(RadarData[i].isChecked===true){            
                         checkIdSend.push(RadarData[i].id);                           
                         console.log(checkIdSend)
                     }
                 }
-                handlerSendTrack()       
+                
+                       
             } catch (err) {
                 console.log(err);
             }
+
+            if(checkIdSend.length > 0){
+                handlerSendTrack()
+            } else {
+                alert("Pilih Track yang akan dikirim")
+            }
     }
 
-    ///Handle Send Radar
+    // HANDLER SEND RADAR TRACK 
     let handlerSendTrack = async (e) => {
         let resSend= await fetch(`http://localhost:8080/radar/sendtrack`, {
             method: "POST",
@@ -712,9 +1174,36 @@ const RadarHome = (props) => {
                 'Content-type': 'application/json; charset=UTF-8',
             },               
         });
+        if (resSend.status === 202) {
+            setId("")
+            alert("Radar Track Sended");
+            window.location.reload();
+          } else {
+            setId("")
+            setMessage("Some error occured");
+            window.location.reload();
+          }
     }
 
-    //Handler Cancel
+    // HANDLER SEND RADAR TRACK SAVE AND SEND
+    let handlerSendTrackSaveAndSend = async (e) => {
+        let resSend= await fetch(`http://localhost:8080/radar/sendtrack`, {
+            method: "POST",
+            body: "["+id+"]",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },               
+        });
+        if (resSend.status === 200) {
+            alert("Radar Track Sended");
+            window.location.reload();
+            } else {
+            setMessage("Some error occured");
+            window.location.reload();
+            }
+    }
+
+    // HANDLER CANCEL
     const handlerCancel=(event)=>{
         setEdit("change")
         var Tinput = "-"
@@ -728,12 +1217,11 @@ const RadarHome = (props) => {
         $selectTrackMode.value = "-";
         setTrackMode("")
         const $selectEnvironment = document.getElementById('er');
-        $selectEnvironment.value = "-";
-        setEnvironment("")
+        $selectEnvironment.value = "";
         setCount("")
         setEnvironment("")
-        setStartTime("")
-        setEndTime("")
+        setStartTime("-")
+        setEndTime("-")
         setCourse("")
         setSpeed("")
         setAltitude("")
@@ -759,100 +1247,177 @@ const RadarHome = (props) => {
         disableFormInput(Tinput, Tmode, status)
     }
 
+    // HANDLER GET DEFAULT
+    const handlerGetDefault=(event)=>{
+        if(trackInput === "single" && trackMode === "manual"){
+            var now = new Date();
+            const $selectEnvironment = document.getElementById('er');
+            $selectEnvironment.value = "1";
+            const $selectMode4Code = document.getElementById('mode4');
+            $selectMode4Code.value = "1";
+            const $selectMode5Code = document.getElementById('mode5');
+            $selectMode5Code.value = "1";
+
+            if(statusRadio == 1){
+                setLongitude(0)
+            setLatitude(0)
+            } else {
+                setBearing(0)
+                setDistance(0)
+            }
+            setCourse(0)
+            setSpeed(0)
+            setAltitude(0)
+            setMode1Code(0)
+            setMode2Code(0)
+            setMode3Code(0)
+            setMode4Code("")
+            setMode5Code("")
+    
+        } else if(trackInput === "single" && trackMode === "automatic"){
+            var now = new Date();
+            const $selectEnvironment = document.getElementById('er');
+            $selectEnvironment.value = "1";
+            const $selectMode4Code = document.getElementById('mode4');
+            $selectMode4Code.value = "1";
+            const $selectMode5Code = document.getElementById('mode5');
+            $selectMode5Code.value = "1";
+            if(statusRadio == 1){
+                setLongitude(0)
+            setLatitude(0)
+            } else {
+                setBearing(0)
+                setDistance(0)
+            }
+            setStartTime("-")
+            setEndTime("-")
+            setCourse(0)
+            setSpeed(0)
+            setAltitude(0)
+            setCourseRangeMin(0)
+            setCourseRangeMax(0)
+            setCourseIncrement(0)
+            setSpeedRangeMin(0)
+            setSpeedRangeMax(0)
+            setSpeedIncrement(0)
+            setAltitudeRangeMin(0)
+            setAltitudeRangeMax(0)
+            setAltitudeIncrement(0)
+            setMode1Code(0)
+            setMode2Code(0)
+            setMode3Code(0)
+            setMode4Code(0)
+            setMode5Code(0)
+        } else if(trackInput === "multi" && trackMode === "manual"){
+            var now = new Date();
+            const $selectEnvironment = document.getElementById('er');
+            $selectEnvironment.value = "1";
+            const $selectMode4Code = document.getElementById('mode4');
+            $selectMode4Code.value = "1";
+            const $selectMode5Code = document.getElementById('mode5');
+            $selectMode5Code.value = "1";
+            if(statusRadio == 1){
+                setLongitude(0)
+            setLatitude(0)
+            } else {
+                setBearing(0)
+                setDistance(0)
+            }
+            setCount("")
+            setCourse(0)
+            setSpeed(0)
+            setAltitude(0)
+            setMode1Code(0)
+            setMode2Code(0)
+            setMode3Code(0)
+            setMode4Code(0)
+            setMode5Code(0)
+        } else if(trackInput === "multi" && trackMode === "automatic"){
+            
+        }
+        
+    }
+
+
     return (
     <div className="main-container">   
         <label className="label">RADAR TRACK LIST INFO</label>
-        <div className="">
+        <div className="track-info">
             <div className="track-list">
                 <div className="table-wrapper">
-                    <table className="scrolldown" >
+                    <table className="scrolldown"  >
                         <thead>
                             <tr>
-                                <th>TN</th>
-                                <th>TI</th>
-                                <th>TM</th>
-                                <th>Env</th>
-                                <th>Course</th>
-                                <th>Cmin</th>
-                                <th>Cmax</th>
-                                <th>Cinc</th>
-                                <th>Speed</th>
-                                <th>Smin</th>
-                                <th>Smax</th>
-                                <th>Sinc</th>
-                                <th>Alt</th>
-                                <th>Amin</th>
-                                <th>Amax</th>
-                                <th>Ainc</th>
-                                <th>BR</th>
-                                <th>DN</th>
-                                <th>Start</th>
-                                <th>End</th>
+                                <th>No</th>
+                                <th>Track ID</th>
+                                <th>Track Mode</th>
+                                <th>Environment</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Last Time Update</th>
                                 <th>Status</th>
-                                <th>Last Send</th>
-                                <th>Action</th>
+                                <th>Action</th>  
                                 <th><input type="checkbox" name="allselect" checked= { !RadarData.some( (radar)=>radar?.isChecked!==true)} onChange={handleChange} /></th>
                             </tr>
                         </thead>
                         <tbody>
                             {
-                                RadarData.map( (d,i)=>(
+
+                    RadarData.map( (d,i)=>(
                                     <tr key={i}>
                                         
+                                        <td>{i}</td>
                                         <td>{d.id}</td>
-                                        <td>{d.trackInput}</td>
                                         <td>{d.trackMode}</td>
-                                        <td>{d.environment}</td>
-                                        <td>{d.course}</td>
-                                        <td>{d.courseRangeMin}</td>
-                                        <td>{d.courseRangeMax}</td>
-                                        <td>{d.courseIncrement}</td>
-                                        <td>{d.speed}</td>
-                                        <td>{d.speedRangeMin}</td>
-                                        <td>{d.speedRangeMax}</td>
-                                        <td>{d.speedIncrement}</td>
-                                        <td>{d.altitude}</td>
-                                        <td>{d.altitudeRangeMin}</td>
-                                        <td>{d.altitudeRangeMax}</td>
-                                        <td>{d.altitudeIncrement}</td>
-                                        <td>{d.bearing}</td>
-                                        <td>{d.distance}</td>
+                                        <td>{enumEnvironment[d.environment]}</td>
                                         <td>{d.startTime}</td>
                                         <td>{d.endTime}</td>
-                                        <td>{d.status}</td>
                                         <td>{d.lastSend}</td>
-                                        
+                                        <td>{d.status}</td>
                                         <td>
                                             {/* <button className="btn btn-sm btn-info me-2">Detail</button> */}
                                             <button className="btn btn-sm btn-primary me-2" id={d.id} onClick={handleGetUpdateRadarTrack}>Edit</button>
                                             {/* <button className="btn btn-sm btn-danger">Delete</button> */}
-                                        </td>
-                                        <td className="select"><input type="checkbox" name={d.id}  checked={d?.isChecked|| false } onChange={ handleChange }/> </td>
-                                
+                                        </td> 
+                                        <td className="select"><input type="checkbox" name={d.id}  checked={d?.isChecked || false} onChange={ handleChange }/> </td>
                                     </tr>
                                 ))
                             }
+
                         </tbody>
                     </table>
                 </div>
-                    <button className="btn btn-primary mb-3" onClick={handlerGetIdSendTrack}>SEND</button>
-                    <button className="btn btn-info mb-3" onClick={handlerGetIdSendTrack}>START</button>
-                    <button className="btn btn-danger mb-3" onClick={handlerGetIdSendTrack}>STOP</button>
+                    <button className="btn btn-primary mt-2" onClick={handlerGetIdSendTrack}>SEND</button>
+                    {/* <button className="btn btn-info mt-2" onClick={handleSetChecked}>COBA</button> */}
+                    <button className="btn btn-danger mt-2" onClick={handlerGetIdStopTrack}>STOP</button>
                     <div className="btn-delete">
-                        <button className="btn btn-danger mb-3"  onClick={handlerGetIdDeleteTrack}>DELETE</button>
+                        <Button variant="btn btn-danger mt-2" onClick={handlerGetIdDeleteTrack}>
+                            DELETE
+                        </Button>
+                        <Modal show={showDelete} onHide={handleCloseDelete}>
+                            <Modal.Header closeButton>
+                            <Modal.Title>Delete Confirmation</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>Yakin hapus Track?</Modal.Body>
+                            <Modal.Footer>
+                            <Button variant="secondary" onClick={handleCloseDelete}>
+                                Close
+                            </Button>
+                            <Button variant="primary" onClick={handlerDeleteTrack}>
+                                Delete
+                            </Button>
+                            </Modal.Footer>
+                        </Modal>
                     </div>
-                
-            </div>
+                    </div>
         </div>
 
 
         <div className="container-list">
         <label className="label">DATA SETTING</label>
             <div className="track-list-1">
-                
                 <div className="data-setting">
-                   
-                        <table className="table-input" >
+                    <table className="table-input">
                             <tr>
                                 <td className="id1"></td>
                                 <td>Track Input</td>
@@ -868,8 +1433,8 @@ const RadarHome = (props) => {
                                 <td>
                                     <select  name="track-mode-radio" class="form-input" id="tmr"   onChange={handleTrackMode} disabled> 
                                         <option value="-">-- Pilih --</option>
-                                        <option value="Manual">Manual</option>
-                                        <option value="Automatic">Automatic</option>
+                                        <option value="manual">Manual</option>
+                                        <option value="automatic">Automatic</option>
                                     </select>
                                 </td>
                                 <td>Count</td>
@@ -893,11 +1458,11 @@ const RadarHome = (props) => {
                                 <td>Environment</td>
                                 <td>             
                                     <select name="environment-radio" class="form-input" id="er" onChange={(e) => setEnvironment(e.target.value)} disabled>
-                                        <option value="-">-- Pilih --</option>
-                                        <option value="air">Air</option>
-                                        <option value="surface">Surface</option>
-                                        <option value="subsurface">Subsurface</option>
-                                        <option value="land">land</option>
+                                        <option value="">-- Pilih --</option>
+                                        <option value="1">Air</option>
+                                        <option value="2">Surface</option>
+                                        <option value="3">Subsurface</option>
+                                        <option value="4">Land</option>
                                     </select>
                                 </td>
                                 <td>Start Time</td>
@@ -924,7 +1489,7 @@ const RadarHome = (props) => {
                                     disabled>
                                     </input>
                                 </td>  
-                                <td>id:{id}, radio:{statusRadio}, status:{edit}</td>
+                                <td>id:{id}, radio:{statusRadio}, status:{edit} test:{checkIdDelete} -- </td>
                             </tr>
 
                             <tr>
@@ -968,7 +1533,7 @@ const RadarHome = (props) => {
                                     disabled>
                                     </input> feet
                                 </td>
-                                <td></td>
+                                <td>Track Mode : {checkTrackMode}</td>
                             </tr>
 
                             <tr>
@@ -1116,7 +1681,7 @@ const RadarHome = (props) => {
                             </tr>
 
                             <tr className="radio-box-top">
-                                <td><input type="radio" className="radio" id="radio1" name="radio1" onClick={handlerRadio1}  disabled={(trackInput === "" && trackMode ==="")} checked={statusRadio === 1}/></td>
+                                <td><input type="radio" className="radio" id="radio1" name="radio1" onClick={handlerRadio1}  disabled={(trackInput === "" || trackMode ==="")} checked={statusRadio === 1}/></td>
                                 <td>Latitude</td>
                                 <td>
                                     <input 
@@ -1126,7 +1691,7 @@ const RadarHome = (props) => {
                                     placeholder="Latitude"
                                     class="form-input"
                                     value={latitude}
-                                    onChange={(e) => setLatitude(e.target.value)} disabled={(statusRadio === 2? true : false)}>
+                                    onChange={(e) => setLatitude(e.target.value)} disabled>
                                     </input>
                                 </td>
                                 <td>Longitude</td>
@@ -1138,17 +1703,14 @@ const RadarHome = (props) => {
                                     placeholder="Longitude"
                                     class="form-input"
                                     value={longitude}
-                                    onChange={(e) => setLongitude(e.target.value)}  disabled={(statusRadio === 2? true : false)}> 
+                                    onChange={(e) => setLongitude(e.target.value)}  disabled> 
                                     </input>
                                 </td>
-                                <td></td>
-                                <td>    
-                                </td>
-                                <td></td>
+                                <td colSpan={3}></td>
                             </tr>
 
                             <tr  className="radio-box-bottom">
-                            <td><input type="radio" className="radio" id="radio2" name="radio2"  onClick={handlerRadio2} disabled={((trackInput === "" && trackMode === "") ? true : false)} checked={statusRadio === 2}/></td>
+                                <td><input type="radio" className="radio" id="radio2" name="radio2"  onClick={handlerRadio2} disabled={((trackInput === "" || trackMode === "") ? true : false)} checked={statusRadio === 2}/></td>
                                 <td>Bearing</td>
                                 <td>
                                     <input 
@@ -1173,16 +1735,14 @@ const RadarHome = (props) => {
                                     onChange={(e) => setDistance(e.target.value)} disabled={(statusRadio === 1? true : false)}> 
                                     </input> NM
                                 </td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td colSpan={3}></td>
+                            
                             </tr>
 
                             <tr>
                                 <td></td>
                                 <td>IFF Data</td>
-                                <td colSpan={5}></td>
-                                <td></td>    
+                                <td colSpan={6}></td>
                             </tr>
 
                             <tr>
@@ -1212,16 +1772,14 @@ const RadarHome = (props) => {
                                     </input>
                                 </td>
                                 <td>Mode V Code</td>
-                                <td>
-                                    <input 
-                                    type="number" 
-                                    id="mode5"
-                                    name="mode5"
-                                    placeholder="Mode V Code"
-                                    class="form-input"
-                                    value={mode5code}
-                                    onChange={(e) => setMode5Code(e.target.value)} disabled>
-                                    </input>
+                                <td>             
+                                    <select name="environment-radio" class="form-input" id="mode5" onChange={(e) => setMode5Code(e.target.value)} disabled>
+                                        <option value="">-- Pilih --</option>
+                                        <option value="0">Not Interogated</option>
+                                        <option value="1">Valid Response</option>
+                                        <option value="2">No Respose</option>
+                                        <option value="3">Invalid</option>
+                                    </select>
                                 </td>
                                 <td></td>                      
                             </tr>
@@ -1241,16 +1799,14 @@ const RadarHome = (props) => {
                                     </input>
                                 </td>
                                 <td>Mode IV Code</td>
-                                <td>
-                                    <input 
-                                    type="number" 
-                                    id="mode4"
-                                    name="mode4"
-                                    placeholder="Mode IV Code"
-                                    class="form-input"
-                                    value={mode4code}
-                                    onChange={(e) => setMode4Code(e.target.value)} disabled> 
-                                    </input>
+                                <td>             
+                                    <select name="mode4" class="form-input" id="mode4" onChange={(e) => setMode4Code(e.target.value)} disabled>
+                                        <option value="">-- Pilih --</option>
+                                        <option value="0">Not Interogated</option>
+                                        <option value="1">Valid Response</option>
+                                        <option value="2">No Respose</option>
+                                        <option value="3">Invalid</option>
+                                    </select>
                                 </td>
                                 <td colSpan={3}></td>
                             </tr>
@@ -1258,13 +1814,43 @@ const RadarHome = (props) => {
                         </table>
                 </div>
             </div>
-                            <button type="submit" className="btn" >GET DEFAULT</button>
-                            <button type="submit" className="btn" onClick={handlerSaveTrack}>SAVE ONLY</button>
-                            <button type="submit" className="btn">SAVE & SEND</button>
-                            <button type="submit" className="btn" onClick={handlerCancel}>CANCEL</button>
+            <button type="submit" className="btn btn-info mt-2" onClick={handlerGetDefault} >GET DEFAULT</button>
+            <Button variant="btn btn-success mt-2" onClick={handlerValidasiInput}>
+                SAVE ONLY
+            </Button>
+            <Modal show={showSave} onHide={handleCloseSave}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Save Confirmation</Modal.Title>
+                </Modal.Header>
+                 <Modal.Body>Yakin untuk menyimpan Track?</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseSave}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={handlerSaveTrack}>
+                        Save
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
-                
-            
+            <Button variant="btn btn-primary mt-2" onClick={handlerValidasiInputSaveAndSendUpdate} disabled={((checkTrackMode === "automatic")? true: false)}>
+                SAVE & SEND
+            </Button>
+            <Modal show={showSaveAndSend} onHide={handleCloseSaveAndSend}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Save and Send Confirmation</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>Yakin untuk Menyimpan dan Mengirim Track?</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseSaveAndSend}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={handlerSaveAndSendTrack}>
+                        Save
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            <button type="submit" className="btn btn-warning mt-2" onClick={handlerCancel}>CANCEL</button>
         </div>
     </div>
   

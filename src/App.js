@@ -1,12 +1,9 @@
-
-
 import Form from './components/ownplatform/Form'
-import Button_grup from './components/button_group';
-import FormRadar from './components/Radar/RadarForm';
-import CobaTabel from './components/Radar/CobaTabel';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './components/home/home';
 import RadarHome from './components/Radar/RadarHome';
+import AISHome from './components/AIS/AisForm';
+import ADSBHome from './components/ADSB/AdsbHome';
+import OwnshipForm from './components/OwnShip/OwnshipForm';
 
 
 
@@ -17,10 +14,11 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path='/' element={<Home />}></Route>
           <Route path='/ownplatform' element={<Form />}></Route>
           <Route path='/radar' element={<RadarHome />}></Route>
-          <Route path='/coba' element={<CobaTabel />}></Route>
+          <Route path='/ais' element={<AISHome />}></Route>
+          <Route path='/ownship' element={<OwnshipForm />}></Route>
+          <Route path='/adsb' element={<ADSBHome />}></Route>
         </Routes>
       </BrowserRouter>
 

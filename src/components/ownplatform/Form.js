@@ -455,68 +455,68 @@ const Form = (props) => {
           <h2 className="title">Own Platform</h2>     
             <table className="table" >
               <tr>
-                <td width="10%">Track Mode</td>  
-                <td width="10%">: {ownplatformConfig.trackMode}</td>   
-                <td><label >Pitch</label></td>
+                <td>Track Mode</td>  
+                <td>: {ownplatformConfig.trackMode}</td>   
+                <td>Pitch</td>
                 <td>: {ownplatformData.pitch} deg</td>  
-                <td><label >Acceleration X</label></td>
+                <td>Acceleration X</td>
                 <td>: {ownplatformData.accelerationX} m/s </td> 
-                <td><label >Barometric Pressure</label></td>
+                <td>Barometric Pressure</td>
                 <td>: {ownplatformData.barometricPressure} Pascal</td>
               </tr>
 
               <tr >
-                <td width="10%"><label>Environment</label></td>
-                <td width="10%">: {ownplatformData.environment}</td> 
-                <td><label >Roll</label></td>
+                <td>Environment</td>
+                <td>: {ownplatformData.environment}</td> 
+                <td>Roll</td>
                 <td>: {ownplatformData.roll} deg</td>
-                <td><label >Acceleration Y</label></td>
+                <td>Acceleration Y</td>
                 <td>: {ownplatformData.accelerationY} m/s</td>
-                <td><label >Air Temperature</label></td>
+                <td>Air Temperature</td>
                 <td>: {ownplatformData.airTemperature} celcius</td>  
               </tr>        
 
               <tr>
-                <td width="10%"><label >Start Time</label></td>
-                <td width="10%">: {ownplatformConfig.startTime}</td> 
-                <td><label >Yaw</label></td>
+                <td>Start Time</td>
+                <td>: {ownplatformConfig.startTime}</td> 
+                <td>Yaw</td>
                 <td>: {ownplatformData.yaw} deg </td>
-                <td><label >Acceleration Z</label></td>
+                <td>Acceleration Z</td>
                 <td>: {ownplatformData.accelerationZ} m/s </td>
-                <td><label >Humidity</label></td>
+                <td>Humidity</td>
                 <td>: {ownplatformData.humidity} %</td>
               </tr>
 
               <tr>
-                <td width="10%"><label >End Time</label></td>
-                <td width="10%">: {ownplatformConfig.endTime} </td>
-                <td><label>Latitude</label></td>
+                <td>End Time</td>
+                <td>: {ownplatformConfig.endTime} </td>
+                <td>Latitude</td>
                 <td>: {ownplatformData.latitude} feet</td>
-                <td><label >Velocity X</label></td>
+                <td>Velocity X</td>
                 <td>: {ownplatformData.velocityX} m/s</td>
-                <td><label >Wind Speed</label></td>
+                <td>Wind Speed</td>
                 <td>: {ownplatformData.windSpeed} m/s</td>
               </tr>
 
               <tr>
-                <td><label>Speed</label></td>
+                <td>Speed</td>
                 <td>: {ownplatformData.speed} knot</td> 
-                <td><label >Longitude</label></td>
+                <td>Longitude</td>
                 <td>: {ownplatformData.longitude} </td>
-                <td><label >Velocity Y</label></td>
+                <td>Velocity Y</td>
                 <td>: {ownplatformData.velocityY} m/s</td>
-                <td><label >Wind Direction</label></td>
+                <td>Wind Direction</td>
                 <td>: {ownplatformData.windDirection} deg</td>
               </tr>
     
               <tr>
-                <td><label>Heading</label> </td>
+                <td>Heading</td>
                 <td>: {ownplatformData.heading} deg</td>
-                <td><label>Altitude</label></td>
+                <td>Altitude</td>
                 <td>: {ownplatformData.altitude}</td>
-                <td><label >Velocity Z</label></td>
+                <td>Velocity Z</td>
                 <td>: {ownplatformData.velocityZ} m/s </td>
-                <td><label>Track Number</label></td>
+                <td>Track Number</td>
                 <td>: {ownplatformConfig.trackNumber}</td>
               </tr>           
             </table>
@@ -539,7 +539,7 @@ const Form = (props) => {
             <table className="table" id="cobatabel">
 
               <tr>
-                <td><label >Track Mode</label></td>
+                <td>Track Mode</td>
                 <td>
                   <select 
                   name="track-mode-radio" id="tmr" onChange={(e) => setTrackMode(e.target.value)} disabled={((editFormStatus === "False") && (ownplatformConfig.status === "-")? true: false)}>
@@ -548,7 +548,7 @@ const Form = (props) => {
                     <option value="Automatic">Automatic</option>
                   </select>
                 </td>
-                <td><label>Environment</label></td>
+                <td>Environment</td>
                 <td>             
                   <select name="environment-radio" id="er"  onChange={(e) => setEnvironment(e.target.value)} disabled={((editFormStatus === "False") && (ownplatformConfig.status === "-")? true: false)}>
                     <option value="land">-- Pilih --</option>

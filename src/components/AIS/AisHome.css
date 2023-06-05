@@ -1,0 +1,163 @@
+.container-list{
+    width: 100%;
+    height: 100%;
+}
+
+.table-wrapper{
+    max-height: 400px;
+    overflow-y: scroll;
+    background-color: #ffffff;
+    height: 400px;
+}
+
+.track-info{
+    width: 98%;
+    background-color: #000033;
+    margin: auto;
+}
+
+.track-list{
+    width: 98%;
+    background-color: #000033;
+    margin: auto;
+}
+
+.track-list-1{
+    width: 98%;
+    margin: auto;
+    color: #000;
+    border: 1px solid rgb(235, 232, 232);
+}
+
+.scrolldown{
+    border-collapse:separate;
+}
+
+
+.id1 {
+    width: 50px;
+}
+
+th {
+    color: #fdfdff;
+    position: sticky;
+    top: 0px;
+    background-color:#000033 ;
+    
+}
+
+
+
+tbody tr:nth-child(odd) {
+  background-color: #fff;
+  color: #000;
+  
+}
+
+tbody tr:nth-child(even) {
+  background-color: #eee;
+  color: #000;
+}
+
+
+table.scrolldown {
+    width: 100%;
+    text-align:center;
+    color: aliceblue;
+    border: 1px solid black;
+}
+
+label{
+    color: aliceblue;
+    font-weight: bold;
+    padding-left: 22px;
+    padding-top: 5px;
+}
+
+
+
+
+
+
+.table-input {
+      width: 100%;     
+} 
+
+
+
+.data-setting {
+    width: 100%;
+    text-align:left;
+    color: rgb(255, 255, 255);
+        border: 2px solid black;
+} 
+
+h5{
+    text-align:left;
+    color: #f3eded;
+}
+
+.select{
+    width: 1000px;
+}
+
+
+
+
+/* To display the block as level element */
+
+    thead tr th {
+    height: 40px; 
+    }
+
+    tbody { 
+    border-top: 2px solid black;
+
+    }
+    tbody td {
+    width : 3000px;
+    border-right: 2px solid black;
+    border: 1px solid rgb(255, 255, 255);
+    
+    }
+
+    thead th {
+        border: 1px solid rgb(255, 255, 255);
+    }
+
+
+.form-input {
+    width: 210px;
+    height: 30px;
+    margin: 5px;
+    
+}
+
+.form-input-increment {
+    width: 84px;
+    margin: 5px;
+}
+
+
+ /* Button */
+ .btn-delete{
+    float: right;
+ }
+
+
+ input[type='radio']{
+    width: 20px;
+    height: 20px;
+}
+
+.radio{
+    margin: 10px;
+}
+
+.radio-box-top{
+    border-top: 1px solid white;
+}
+
+.radio-box-bottom{
+    border-bottom: 1px solid white;
+}
